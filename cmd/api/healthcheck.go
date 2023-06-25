@@ -7,20 +7,20 @@ import (
 // Declare a handler which writes a plain-text response with information about the
 // application status, operating environment and version.
 func (app *application) healthcheckHandler(w http.ResponseWriter, r *http.Request) {
-	// Get the status, environment, and version of the application.
-	data := map[string]string{
-		"status":      "available",
-		"environment": app.config.env,
-		"version":     version,
+	// Declare an envelope map containing the data for the response. Notice that the way
+	// we've constructed this means the environment and version data will now be nested
+	// under a system_info key in the JSON response.
+	env := envelope{
+		"status": "available",
+		"system_info": map[string]string{
+			"environment": app.config.env,
+			"version":     version,
+		},
 	}
 
-	// Write the data to the response.
-	err := app.writeJSON(w, http.StatusOK, data, nil)
+	err := app.writeJSON(w, http.StatusOK, env, nil)
 	if err != nil {
-		// Log the error.
 		app.logger.Println(err)
-
-		// Return an error to the client.
 		http.Error(w, "The server encountered a problem and could not process your request", http.StatusInternalServerError)
 	}
 }
