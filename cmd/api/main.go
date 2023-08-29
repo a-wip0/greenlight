@@ -6,7 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"greenlight/internal/data"
-	"greenlight/internal/jsonlog"
+	"log"
 	"net/http"
 	"os"
 	"time"
@@ -43,7 +43,7 @@ type config struct {
 // logger, but it will grow to include a lot more as our build progresses.
 type application struct {
 	config config
-	logger *jsonlog.Logger
+	logger *log.Logger
 	models data.Models
 }
 
@@ -67,25 +67,23 @@ func main() {
 	flag.StringVar(&cfg.db.maxIdleTime, "db-max-idle-time", "15m", "PostgreSQL max connection idle time")
 
 	flag.Parse()
-	// Initialize a new jsonlog.Logger which writes any messages *at or above* the INFO
-	// severity level to the standard out stream.
-	logger := jsonlog.New(os.Stdout, jsonlog.LevelInfo)
+	// Initialize a new logger which writes messages to the standard out stream,
+	// prefixed with the current date and time.
+	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
 
 	// Call the openDB() helper function (see below) to create the connection pool,
 	// passing in the config struct. If this returns an error, we log it and exit the
 	// application immediately.
 	db, err := openDB(cfg)
 	if err != nil {
-		// Use the PrintFatal() method to write a log entry containing the error at the
-		// FATAL level and exit. We have no additional properties to include in the log
-		// entry, so we pass nil as the second parameter.
-		logger.PrintFatal(err, nil)
+		logger.Fatal(err)
 	}
 	// Defer a call to db.Close() so that the connection pool is closed before the
 	// main() function exits.
 	defer db.Close()
-	// Likewise use the PrintInfo() method to write a message at the INFO level.
-	logger.PrintInfo("database connection pool established", nil)
+	// Also log a message to say that the connection pool has been successfully
+	// established.
+	logger.Printf("database connection pool established")
 
 	// Declare an instance of the application struct, containing the config struct and
 	// the logger.
@@ -104,18 +102,12 @@ func main() {
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 30 * time.Second,
 	}
-
-	// Again, we use the PrintInfo() method to write a "starting server" message at the
-	// INFO level. But this time we pass a map containing additional properties (the
-	// operating environment and server address) as the final parameter.
-	logger.PrintInfo("starting server", map[string]string{
-		"addr": srv.Addr,
-		"env":  cfg.env,
-	})
-
+	// Start the HTTP server.
+	logger.Printf("starting %s server on %s", cfg.env, srv.Addr)
+	// Because the err variable is now already declared in the code above, we need
+	// to use the = operator here, instead of the := operator.
 	err = srv.ListenAndServe()
-	// Use the PrintFatal() method to log the error and exit.
-	logger.PrintFatal(err, nil)
+	logger.Fatal(err)
 }
 
 // The openDB() function returns a sql.DB connection pool.
