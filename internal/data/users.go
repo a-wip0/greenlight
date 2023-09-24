@@ -11,6 +11,9 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+// Declare a new AnonymousUser variable.
+var AnonymousUser = &User{}
+
 // Define a custom ErrDuplicateEmail error.
 var (
 	ErrDuplicateEmail = errors.New("duplicate email")
@@ -28,6 +31,11 @@ type User struct {
 	Password  password  `json:"-"`
 	Activated bool      `json:"activated"`
 	Version   int       `json:"-"`
+}
+
+// Check if a User instance is the AnonymousUser.
+func (u *User) IsAnonymous() bool {
+	return u == AnonymousUser
 }
 
 // Create a custom password type which is a struct containing the plaintext and hashed
