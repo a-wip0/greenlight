@@ -90,7 +90,6 @@ func (m MovieModel) Get(id int64) (*Movie, error) {
 	// Use the QueryRowContext() method to execute the query, passing in the context
 	// with the deadline as the first argument.
 	err := m.DB.QueryRowContext(ctx, query, id).Scan(
-		&[]byte{},
 		&movie.ID,
 		&movie.CreatedAt,
 		&movie.Title,
