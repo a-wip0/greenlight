@@ -70,8 +70,6 @@ func (app *application) rateLimit(next http.Handler) http.Handler {
 			mu.Lock()
 			if _, found := clients[ip]; !found {
 				clients[ip] = &client{
-					// Use the requests-per-second and burst values from the config
-					// struct.
 					limiter: rate.NewLimiter(rate.Limit(app.config.limiter.rps), app.config.limiter.burst),
 				}
 			}
@@ -82,7 +80,6 @@ func (app *application) rateLimit(next http.Handler) http.Handler {
 				return
 			}
 		}
-		mu.Unlock()
 		next.ServeHTTP(w, r)
 	})
 }
