@@ -1,5 +1,5 @@
-# Include variables from the .envrc file
-include .envrc
+# Include variables from the .env file
+include .env
 
 # ==================================================================================== #
 # HELPERS
@@ -27,7 +27,7 @@ run/api:
 ## db/psql: connect to the database using psql
 .PHONY: db/psql
 db/psql:
-	psql 'postgres://greenlight:pa55word@localhost/greenlight?sslmode=disable'
+	psql ${GREENLIGHT_DB_DSN}
 
 ## db/migrations/new name=$1: create a new database migration
 .PHONY: db/migrations/new
@@ -39,7 +39,7 @@ db/migrations/new:
 .PHONY: db/migrations/up
 db/migrations/up: confirm
 	@echo 'Running up migrations...'
-	migrate -path ./migrations -database 'postgres://greenlight:pa55word@localahost/greenlight?sslmode=disable' up
+	migrate -path ./migrations -database ${GREENLIGHT_DB_DSN} up
 
 # ==================================================================================== #
 # QUALITY CONTROL
